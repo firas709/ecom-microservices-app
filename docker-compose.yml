@@ -1,0 +1,39 @@
+services:
+  postgresql-product:
+    container_name: product_ms_pg_sql
+    image: postgres:17.2-alpine
+    environment:
+      POSTGRES_USER: firas
+      POSTGRES_PASSWORD: firas
+      PGDATA: /data/postgres
+      POSTGRES_DB: product_db
+    volumes:
+      - postgres-product_db:/data/postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - ms-net
+    restart: unless-stopped
+
+  mongodb-user:
+    image: mongo:7.0.5
+    container_name: mongo_db_user
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo:/data
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=firas
+      - MONGO_INITDB_ROOT_PASSWORD=firas
+      - MONGO_INITDB_DATABASE=user_db
+
+
+
+
+networks:
+  ms-net:
+    driver: bridge
+
+volumes:
+  postgres-product_db:
+  mongo:
