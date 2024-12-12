@@ -4,16 +4,22 @@ services:
     image: postgres:17.2-alpine
     environment:
       POSTGRES_USER: firas
-      POSTGRES_PASSWORD: firas
+      POSTGRES_PASSWORD: Firas123@
+      POSTGRES_DB: ecommerce_product_cataloge
       PGDATA: /data/postgres
-      POSTGRES_DB: product_db
     volumes:
       - postgres-product_db:/data/postgres
+      - ./init-scripts:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"
     networks:
       - ms-net
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U firas -d ecommerce_product_cataloge" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   mongodb-user:
     image: mongo:7.0.5
