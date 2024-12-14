@@ -7,13 +7,14 @@ import tn.firas.productservice.dto.response.ProductResponse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface ProductService {
 
 
-    String createProduct(ProductRequest productDto, List<MultipartFile> images) throws IOException;
-    String updateProduct(Integer productId, ProductRequest req, List<MultipartFile> images) throws Exception;
-    ProductResponse getProduct(Integer idProduct);
-    PageResponse<ProductResponse> getAllProducts(int page, int size);
+    Map<String, Object> createProduct(ProductRequest productDto, List<MultipartFile> images) throws IOException;
+    Map<String, Object> updateProduct(Integer productId, ProductRequest req, List<MultipartFile> images) throws Exception;
+    ProductResponse getProduct(Integer idProduct) throws IOException ;
     void deleteById(Integer productId) throws Exception;
+    PageResponse<ProductResponse> getAllProducts(int page, int size);
 }

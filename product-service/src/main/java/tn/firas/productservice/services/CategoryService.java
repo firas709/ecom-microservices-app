@@ -5,15 +5,22 @@ import tn.firas.productservice.common.PageResponse;
 import tn.firas.productservice.dto.request.CategoryRequest;
 import tn.firas.productservice.dto.response.CategoryResponse;
 
-public interface CategoryService {
-    String createCategory(CategoryRequest request);
+import java.util.List;
+import java.util.Map;
 
-    String updateCategory(Integer id, CategoryRequest request);
+public interface CategoryService {
+    Map<String, Object> createCategory(CategoryRequest request);
+
+    Map<String, Object>  updateCategory(Integer id, CategoryRequest request);
 
 
     CategoryResponse getCategory(Integer id);
 
     PageResponse<CategoryResponse> getAllCategories(int page, int size);
 
+    List<CategoryResponse> getAllCategoriesWithoutPagination();
+
     void deleteCategory(Integer id);
+
+    Integer countProductsByCategory(Integer categoryId);
 }

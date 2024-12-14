@@ -22,10 +22,14 @@ import tn.firas.productservice.services.ProductService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    public String createProduct(ProductRequest productDto, List<MultipartFile> images) throws IOException {
+    public Map<String, Object> createProduct(ProductRequest productDto, List<MultipartFile> images) throws IOException {
 
         // Check if category If Not Exist
         Category category = categoryRepository.findById(productDto.categoryId())
@@ -50,12 +54,19 @@ public class ProductServiceImpl implements ProductService {
         List<String> finalImagePaths = saveImages(images, savedProduct.getId());
         savedProduct.setImages(finalImagePaths);
         productRepository.save(savedProduct);
-        return "product created successfully with id: " + savedProduct.getId();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", savedProduct.getId());
+        response.put("name", savedProduct.getName());
+        response.put("message", "product created successfully with id: " + savedProduct.getId());
+        response.put("timestamp", LocalDateTime.now());
+        return response;
+
     }
 
         @Override
     @Transactional
-    public String updateProduct(Integer productId,ProductRequest req, List<MultipartFile> images) throws Exception {
+    public Map<String, Object> updateProduct(Integer productId,ProductRequest req, List<MultipartFile> images) throws Exception {
 
         Product productExist= productRepository.findById(productId)
                 .orElseThrow(()->new EntityNotFoundException("Product not found with ID:: "+productId));
@@ -81,40 +92,49 @@ public class ProductServiceImpl implements ProductService {
         newProduct.setAvailableQuantity(req.availableQuantity());
         newProduct.setIsSold(req.isSold());
 
-        productRepository.save(newProduct);
+        Product savedProduct = productRepository.save(newProduct);
 
-        return "product updated successfully with id: " + newProduct.getId();
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", savedProduct.getId());
+            response.put("name", savedProduct.getName());
+            response.put("message", "product updated successfully with id: " + newProduct.getId());
+            response.put("timestamp", LocalDateTime.now());
+            return response;
+
+
     }
 
     @Override
-    public ProductResponse getProduct(Integer idProduct) {
+    public ProductResponse getProduct(Integer idProduct) throws IOException {
 
-        return productRepository.findById(idProduct)
-                .map(productMapper::toProductResponse)
+        Product found =  productRepository.findById(idProduct)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + idProduct));
-    }
 
 
-    @Override
-    public PageResponse<ProductResponse> getAllProducts(int page, int size) {
+        List<byte[]> images = new ArrayList<>();
+        for (String imagePath : found.getImages()) {
+            String projectPath = System.getProperty("user.dir");
+            byte[] loadedImage = null;
+            String finalImagePath = projectPath + "/src/main/resources/static" + imagePath;
+            loadedImage = loadImageB64(finalImagePath);
+            images.add(loadedImage);
+        }
 
-        Pageable pageable = PageRequest.of(page, size);
 
-        Page<Product> products = productRepository.findAllProducts(pageable);
-
-        List<ProductResponse> productResponses = products.stream()
-                .map(productMapper::toProductResponse)
-                .toList();
-        return new PageResponse<>(
-                productResponses,
-                products.getNumber(),
-                products.getSize(),
-                products.getTotalElements(),
-                products.getTotalPages(),
-                products.isFirst(),
-                products.isLast()
+        return new ProductResponse(
+                found.getId(),
+                found.getName(),
+                found.getDescription(),
+                found.getAvailableQuantity(),
+                images,found.getPrice(),
+                found.getPriceSold(),
+                new CategoryResponse(found.getCategory().getId(),found.getCategory().getName(),found.getCategory().getIsActive(),found.getCategory().getCreatedDate()),
+                found.getIsActive(),found.getIsSold()
         );
     }
+
+
+
 
 
 
@@ -130,6 +150,55 @@ public class ProductServiceImpl implements ProductService {
 
 
     }
+
+    @Override
+    public PageResponse<ProductResponse> getAllProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        List<ProductResponse> productResponses = productPage.getContent().stream().map(product -> {
+            List<byte[]> images = new ArrayList<>();
+            for (String imagePath : product.getImages()) {
+                try {
+                    String projectPath = System.getProperty("user.dir");
+                    String finalImagePath = projectPath + "/src/main/resources/static" + imagePath;
+                    images.add(loadImageB64(finalImagePath));
+                } catch (IOException e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+            return new ProductResponse(
+                    product.getId(),
+                    product.getName(),
+                    product.getDescription(),
+                    product.getAvailableQuantity(),
+                    images,
+                    product.getPrice(),
+                    product.getPriceSold(),
+                    new CategoryResponse(
+                            product.getCategory().getId(),
+                            product.getCategory().getName(),
+                            product.getCategory().getIsActive(),
+                            product.getCategory().getCreatedDate()
+                    ),
+                    product.getIsActive(),
+                    product.getIsSold()
+            );
+        }).toList();
+
+        return PageResponse.<ProductResponse>builder()
+                .content(productResponses)
+                .number(productPage.getNumber())
+                .size(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .first(productPage.isFirst())
+                .last(productPage.isLast())
+                .build();
+    }
+
 
 
     private List<String> saveImages(List<MultipartFile> images, Integer productId) throws IOException {
@@ -163,4 +232,10 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 }
+
+    private byte[] loadImageB64(String imagePath) throws IOException {
+
+        Path path = Paths.get(imagePath);
+        return Files.readAllBytes(path);
+    }
 }

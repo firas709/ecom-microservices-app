@@ -4,7 +4,9 @@
     <option name="initGenerateDdl" value="true" />
     <option name="snapshotDb" value="false" />
     <option name="snapshotModelValue" value="product-service:product-service" />
+    <option name="sourceDbValue" value="b63c4b00-67cf-4430-a2b5-4f260508a78b" />
+    <option name="sourceDiffType" value="DB" />
     <option name="sourceModelValue" value="product-service:product-service" />
-    <option name="targetDbValue" value="3317fcd8-a799-44be-80c4-dfb3d6422f2d" />
+    <option name="targetDbValue" value="b63c4b00-67cf-4430-a2b5-4f260508a78b" />
   </component>
 </project>

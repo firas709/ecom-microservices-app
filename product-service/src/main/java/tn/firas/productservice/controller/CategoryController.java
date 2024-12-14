@@ -3,31 +3,38 @@ package tn.firas.productservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.firas.productservice.common.PageResponse;
 import tn.firas.productservice.dto.request.CategoryRequest;
 import tn.firas.productservice.dto.response.CategoryResponse;
 import tn.firas.productservice.services.CategoryService;
 
+import java.util.List;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String createCategory(
+    public Map<String, Object> createCategory(
             @Valid @RequestBody CategoryRequest request) {
         return categoryService.createCategory(request);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public String updateCategory(
+    public Map<String, Object> updateCategory(
             @PathVariable Integer id,
             @Valid @RequestBody CategoryRequest request) {
+
+
         return categoryService.updateCategory(id, request);
     }
 
@@ -46,9 +53,23 @@ public class CategoryController {
         return categoryService.getAllCategories(page,size);
     }
 
+    @GetMapping("/categories")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CategoryResponse> getAllCategoriesWithoutPagination() {
+        return categoryService.getAllCategoriesWithoutPagination();
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCategory(@PathVariable Integer id) {
         categoryService.deleteCategory(id);
     }
+
+
+    @GetMapping("/{categoryId}/product-count")
+    public ResponseEntity<Integer> countProductsByCategory(@PathVariable Integer categoryId) {
+        Integer productCount = categoryService.countProductsByCategory(categoryId);
+        return ResponseEntity.ok(productCount);
+    }
+
 }

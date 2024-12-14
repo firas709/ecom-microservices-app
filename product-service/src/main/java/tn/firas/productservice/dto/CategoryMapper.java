@@ -10,7 +10,7 @@ public class CategoryMapper {
     public Category toCategory (CategoryRequest categoryAddRequest) {
         return Category.builder()
                 .name(categoryAddRequest.categoryName())
-                .description(categoryAddRequest.categoryDescription())
+                .isActive(categoryAddRequest.categoryIsActive())
                 .build();
     }
 
@@ -18,7 +18,8 @@ public class CategoryMapper {
         return new CategoryResponse(
                 category.getId(),
                 category.getName(),
-                category.getDescription()
+                category.getIsActive(),
+                category.getCreatedDate()
         );
     }
 }

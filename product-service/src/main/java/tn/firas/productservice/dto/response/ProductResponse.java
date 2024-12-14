@@ -8,8 +8,9 @@ public record ProductResponse(
         String name,
         String description,
         Double availableQuantity,
-        List<String> images,
+        List<byte[]> images,
         BigDecimal price,
+        BigDecimal priceSold,
         CategoryResponse category,
         Boolean isActive,
         Boolean isSold

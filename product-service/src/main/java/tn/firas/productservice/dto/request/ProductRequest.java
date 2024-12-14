@@ -16,6 +16,7 @@ public record ProductRequest(
         List<String>images,
         @Positive(message = "Price should be positive")
         BigDecimal price,
+        BigDecimal priceSold,
         Boolean isActive,
         Boolean isSold,
         @NotNull(message = "Product category is required")

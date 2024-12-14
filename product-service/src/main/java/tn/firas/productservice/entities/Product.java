@@ -22,6 +22,7 @@ public class Product {
     private String description;
     private Double availableQuantity;
     private BigDecimal price;
+    private BigDecimal priceSold;
     private Boolean isActive;
     private Boolean isSold;
 

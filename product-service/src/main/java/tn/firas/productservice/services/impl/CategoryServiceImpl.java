@@ -15,7 +15,10 @@ import tn.firas.productservice.exception.CategoryAlreadyExistsException;
 import tn.firas.productservice.repositories.CategoryRepository;
 import tn.firas.productservice.services.CategoryService;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public String createCategory(CategoryRequest request) {
+    public Map<String, Object> createCategory(CategoryRequest request) {
         // Validate unique category name
         if (categoryRepository.existsByName(request.categoryName())) {
             throw new CategoryAlreadyExistsException("Category with name " + request.categoryName() + " already exists");
@@ -32,25 +35,40 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category category = categoryMapper.toCategory(request);
         Category savedCategory = categoryRepository.save(category);
-        return "Category created successfully with id: " + savedCategory.getId();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", category.getId());
+        response.put("name", category.getName());
+        response.put("message", "Category created successfully");
+        response.put("timestamp", LocalDateTime.now());
+        return response;
     }
 
+
+
     @Override
-    public String updateCategory(Integer id, CategoryRequest request) {
+    public Map<String, Object>  updateCategory(Integer id, CategoryRequest request) {
 
         Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
 
+        existingCategory.setIsActive(request.categoryIsActive());
+
         // Validate unique category name
-        if (categoryRepository.existsByName(request.categoryName())) {
+        if (categoryRepository.existsByName(request.categoryName()) && !existingCategory.getName().equals(request.categoryName())) {
             throw new CategoryAlreadyExistsException("Category with name " + request.categoryName() + " already exists");
         }
 
         existingCategory.setName(request.categoryName());
-        existingCategory.setDescription(request.categoryDescription());
+
 
         Category updatedCategory = categoryRepository.save(existingCategory);
-        return "Category updated successfully with id: " + updatedCategory.getId();
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", updatedCategory.getId());
+        response.put("name", updatedCategory.getName());
+        response.put("message", "Category updated successfully");
+        response.put("timestamp", LocalDateTime.now());
+        return response;
     }
 
     @Override
@@ -83,12 +101,29 @@ public class CategoryServiceImpl implements CategoryService {
         );
     }
 
+
+    @Override
+    public List<CategoryResponse> getAllCategoriesWithoutPagination() {
+
+
+        return categoryRepository.findAll().stream()
+                .map(categoryMapper::toCategoryResponse)
+                .toList();
+
+    }
+
+
+
     @Override
     public void deleteCategory(Integer id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
 
         categoryRepository.delete(category);
+    }
+
+    public Integer countProductsByCategory(Integer categoryId) {
+        return categoryRepository.countProductsByCategoryId(categoryId);
     }
 
 

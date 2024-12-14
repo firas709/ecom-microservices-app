@@ -1,10 +1,11 @@
-INSERT INTO product (id, name, description, available_quantity, price, is_active, is_sold, category_id)
+INSERT INTO product (id, name, description, available_quantity, price,price_sold, is_active, is_sold, category_id)
 VALUES (
            3,
            'Earbuds',
            'Ecouteurs Bluetooth Generic M10 ',
     500,
     29900,
+    27900,
     true,
     false,
     151

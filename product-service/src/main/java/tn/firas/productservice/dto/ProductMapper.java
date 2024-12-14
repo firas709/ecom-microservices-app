@@ -6,6 +6,9 @@ import tn.firas.productservice.dto.response.CategoryResponse;
 import tn.firas.productservice.dto.response.ProductResponse;
 import tn.firas.productservice.entities.Category;
 import tn.firas.productservice.entities.Product;
+import tn.firas.productservice.file.FileUtils;
+
+import java.io.File;
 
 @Service
 public class ProductMapper {
@@ -14,6 +17,7 @@ public class ProductMapper {
         product.setName(request.name());
         product.setDescription(request.description());
         product.setPrice(request.price());
+        product.setPriceSold(request.priceSold());
         Category category = new Category();
         category.setId(request.categoryId());
         product.setCategory(category);
@@ -29,12 +33,14 @@ public class ProductMapper {
                 product.getName(),
                 product.getDescription(),
                 product.getAvailableQuantity(),
-                product.getImages(),
+                product.getImages().stream().map(FileUtils::readFileFromLocation).toList(),
                 product.getPrice(),
+                product.getPriceSold(),
                 new CategoryResponse(
                         product.getCategory().getId(),
                         product.getCategory().getName(),
-                        product.getCategory().getDescription()
+                        product.getCategory().getIsActive(),
+                        product.getCategory().getCreatedDate()
                 ),
                 product.getIsSold(),
                 product.getIsActive()
