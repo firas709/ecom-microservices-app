@@ -17,7 +17,7 @@ CREATE TABLE product
 (
     id                 INTEGER NOT NULL,
     name               VARCHAR(255),
-    description        VARCHAR(255),
+    description        VARCHAR(3000),
     available_quantity DOUBLE PRECISION,
     price              DECIMAL,
     price_sold          DECIMAL,

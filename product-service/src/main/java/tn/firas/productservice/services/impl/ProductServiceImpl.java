@@ -115,7 +115,7 @@ public class ProductServiceImpl implements ProductService {
         for (String imagePath : found.getImages()) {
             String projectPath = System.getProperty("user.dir");
             byte[] loadedImage = null;
-            String finalImagePath = projectPath + "/src/main/resources/static" + imagePath;
+            String finalImagePath = projectPath + "/uploads" + imagePath;
             loadedImage = loadImageB64(finalImagePath);
             images.add(loadedImage);
         }
@@ -161,7 +161,7 @@ public class ProductServiceImpl implements ProductService {
             for (String imagePath : product.getImages()) {
                 try {
                     String projectPath = System.getProperty("user.dir");
-                    String finalImagePath = projectPath + "/src/main/resources/static" + imagePath;
+                    String finalImagePath = projectPath + "/uploads" + imagePath;
                     images.add(loadImageB64(finalImagePath));
                 } catch (IOException e) {
 
@@ -204,7 +204,8 @@ public class ProductServiceImpl implements ProductService {
     private List<String> saveImages(List<MultipartFile> images, Integer productId) throws IOException {
     List<String> finalImagePaths = new ArrayList<>();
     String projectPath = System.getProperty("user.dir");
-    String productDir = projectPath + "/src/main/resources/static/images/products/" + productId;
+//    String productDir = projectPath + "/src/main/resources/static/images/products/" + productId;
+    String productDir = projectPath + "/uploads/images/products/" + productId;
     File dir = new File(productDir);
     if (!dir.exists()) {
         dir.mkdirs();
@@ -224,7 +225,7 @@ public class ProductServiceImpl implements ProductService {
     private void deleteImages(List<String> imagePaths) throws Exception {
     String projectPath = System.getProperty("user.dir");
     for (String imagePath : imagePaths) {
-        String finalImagePath = projectPath + "/src/main/resources/static" + imagePath;
+        String finalImagePath = projectPath + "/uploads" + imagePath;
         try {
             Files.deleteIfExists(Paths.get(finalImagePath));
         } catch (IOException e) {
