@@ -25,11 +25,11 @@ jobs:
 
       - name: Running Unit Tests for all services
         run: |
-          cd ../order-service
+          cd order-service
           ./mvnw clean compile
-          cd ../product-service
+          cd product-service
           ./mvnw clean compile
-          cd ../user-service
+          cd user-service
           ./mvnw clean compile
 
   unit-tests:
@@ -49,11 +49,11 @@ jobs:
 
       - name: Running Unit Tests for all services
         run: |
-          cd ../order-service
+          cd order-service
           ./mvnw clean test
-          cd ../product-service
+          cd product-service
           ./mvnw clean test
-          cd ../user-service
+          cd user-service
           ./mvnw clean test
 
   build:
@@ -74,11 +74,11 @@ jobs:
 
       - name: Compile all services
         run: |
-          cd ../order-service
+          cd order-service
           ./mvnw clean compile
-          cd ../product-service
+          cd product-service
           ./mvnw clean compile
-          cd ../user-service
+          cd user-service
           ./mvnw clean compile
 
   build-image:
