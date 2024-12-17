@@ -81,4 +81,11 @@ public class ProductController {
     }
 
 
+    @GetMapping("/products")
+    public ResponseEntity<List<ProductResponse>> getAllProductsWithoutPagination() {
+        List<ProductResponse> products = productService.findAllProductsWithoutPagination();
+        return ResponseEntity.ok(products);
+    }
+
+
 }

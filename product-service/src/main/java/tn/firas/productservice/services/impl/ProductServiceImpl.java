@@ -199,6 +199,50 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+    @Override
+    public List<ProductResponse> findAllProductsWithoutPagination() {
+        List<Product> products = productRepository.findAll();
+        List<ProductResponse> productResponses = new ArrayList<>();
+
+        for (Product product : products) {
+            List<byte[]> images = new ArrayList<>();
+            for (String imagePath : product.getImages()) {
+                try {
+                    // Construct the full path to the image file
+                    String projectPath = System.getProperty("user.dir"); // Project directory
+                    String finalImagePath = projectPath + "/uploads" + imagePath; // Assuming imagePath does not already include "/uploads"
+                    images.add(loadImageB64(finalImagePath));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            ProductResponse productResponse = new ProductResponse(
+                    product.getId(),
+                    product.getName(),
+                    product.getDescription(),
+                    product.getAvailableQuantity(),
+                    images,
+                    product.getPrice(),
+                    product.getPriceSold(),
+                    new CategoryResponse(
+                            product.getCategory().getId(),
+                            product.getCategory().getName(),
+                            product.getCategory().getIsActive(),
+                            product.getCategory().getCreatedDate()
+                    ),
+                    product.getIsActive(),
+                    product.getIsSold()
+            );
+
+            productResponses.add(productResponse);
+        }
+
+        return productResponses;
+    }
+
+
+
 
 
     private List<String> saveImages(List<MultipartFile> images, Integer productId) throws IOException {

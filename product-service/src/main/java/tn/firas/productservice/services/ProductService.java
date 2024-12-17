@@ -17,4 +17,6 @@ public interface ProductService {
     ProductResponse getProduct(Integer idProduct) throws IOException ;
     void deleteById(Integer productId) throws Exception;
     PageResponse<ProductResponse> getAllProducts(int page, int size);
+
+    List<ProductResponse> findAllProductsWithoutPagination();
 }

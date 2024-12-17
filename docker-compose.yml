@@ -21,6 +21,28 @@ services:
       timeout: 5s
       retries: 5
 
+  postgresql-order:
+    container_name: order_ms_pg_sql
+    image: postgres:17.2-alpine
+    environment:
+      POSTGRES_USER: firas
+      POSTGRES_PASSWORD: Firas123@
+      POSTGRES_DB: ecommerce_order_cataloge
+      PGDATA: /data/postgres
+    volumes:
+      - order-product_db:/data/postgres
+      - ./init-script:/docker-entrypoint-initdb.d
+    ports:
+      - "5434:5432"
+    networks:
+      - ms-net
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U firas -d ecommerce_order_cataloge" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   mongodb-user:
     image: mongo:7.0.5
     container_name: mongo_db_user
@@ -32,6 +54,20 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=firas
       - MONGO_INITDB_ROOT_PASSWORD=firas
       - MONGO_INITDB_DATABASE=user_db
+    networks:
+      - ms-net
+  mongodb-notification:
+    image: mongo:7.0.5
+    container_name: mongo_db_notification
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb:/data
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=firas
+      - MONGO_INITDB_ROOT_PASSWORD=firas
+      - MONGO_INITDB_DATABASE=notification_db
     networks:
       - ms-net
 
@@ -48,10 +84,40 @@ services:
     networks:
       - ms-net
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "22181:2181"
+    networks:
+      - ms-net
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: ms_kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+    networks:
+      - ms-net
+
 networks:
   ms-net:
     driver: bridge
 
 volumes:
   postgres-product_db:
+  order-product_db:
   mongo:
+  mongodb:
