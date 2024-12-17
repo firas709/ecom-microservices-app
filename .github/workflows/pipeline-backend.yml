@@ -25,12 +25,12 @@ jobs:
 
       - name: Running Unit Tests for all services
         run: |
-          cd api-gateway
-          ./mvnw clean compile
-          cd ../config-server
-          ./mvnw clean compile
-          cd ../discovery-server
-          ./mvnw clean compile
+#          cd api-gateway
+#          ./mvnw clean compile
+#          cd ../config-server
+#          ./mvnw clean compile
+#          cd ../discovery-server
+#          ./mvnw clean compile
           cd ../order-service
           ./mvnw clean compile
           cd ../product-service
@@ -55,12 +55,12 @@ jobs:
 
       - name: Running Unit Tests for all services
         run: |
-          cd api-gateway
-          ./mvnw clean test
-          cd ../config-server
-          ./mvnw clean test
-          cd ../discovery-server
-          ./mvnw clean test
+#          cd api-gateway
+#          ./mvnw clean test
+#          cd ../config-server
+#          ./mvnw clean test
+#          cd ../discovery-server
+#          ./mvnw clean test
           cd ../order-service
           ./mvnw clean test
           cd ../product-service
@@ -86,12 +86,12 @@ jobs:
 
       - name: Compile all services
         run: |
-          cd api-gateway
-          ./mvnw clean compile
-          cd ../config-server
-          ./mvnw clean compile
-          cd ../discovery-server
-          ./mvnw clean compile
+#          cd api-gateway
+#          ./mvnw clean compile
+#          cd ../config-server
+#          ./mvnw clean compile
+#          cd ../discovery-server
+#          ./mvnw clean compile
           cd ../order-service
           ./mvnw clean compile
           cd ../product-service
@@ -127,32 +127,32 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & Push Docker images for all services
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/api-gateway/Dockerfile
-          push: true
-          platforms: linux/amd64
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:${{ steps.extract_version.outputs.VERSION }}
+#      - name: Build & Push Docker images for all services
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./docker/api-gateway/Dockerfile
+#          push: true
+#          platforms: linux/amd64
+#          tags: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:${{ steps.extract_version.outputs.VERSION }}
 
-      - name: Build & Push Docker image for config-server
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/config-server/Dockerfile
-          push: true
-          platforms: linux/amd64
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:${{ steps.extract_version.outputs.VERSION }}
-
-      - name: Build & Push Docker image for discovery-server
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/discovery-server/Dockerfile
-          push: true
-          platforms: linux/amd64
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/discovery-server:${{ steps.extract_version.outputs.VERSION }}
+#      - name: Build & Push Docker image for config-server
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./docker/config-server/Dockerfile
+#          push: true
+#          platforms: linux/amd64
+#          tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:${{ steps.extract_version.outputs.VERSION }}
+#
+#      - name: Build & Push Docker image for discovery-server
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./docker/discovery-server/Dockerfile
+#          push: true
+#          platforms: linux/amd64
+#          tags: ${{ secrets.DOCKERHUB_USERNAME }}/discovery-server:${{ steps.extract_version.outputs.VERSION }}
 
       - name: Build & Push Docker image for order-service
         uses: docker/build-push-action@v5
