@@ -1,0 +1,218 @@
+name: Microservices Backend API Pipeline
+
+on:
+  push:
+    paths:
+      - '*'
+      - 'docker-compose.yml'
+      - .github/workflows/*-backend.yml
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    name: Compile all microservices
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Running Unit Tests for all services
+        run: |
+          cd api-gateway
+          ./mvnw clean compile
+          cd ../config-server
+          ./mvnw clean compile
+          cd ../discovery-server
+          ./mvnw clean compile
+          cd ../order-service
+          ./mvnw clean compile
+          cd ../product-service
+          ./mvnw clean compile
+          cd ../user-service
+          ./mvnw clean compile
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Run unit tests for all services
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Running Unit Tests for all services
+        run: |
+          cd api-gateway
+          ./mvnw clean test
+          cd ../config-server
+          ./mvnw clean test
+          cd ../discovery-server
+          ./mvnw clean test
+          cd ../order-service
+          ./mvnw clean test
+          cd ../product-service
+          ./mvnw clean test
+          cd ../user-service
+          ./mvnw clean test
+
+  build:
+    runs-on: ubuntu-latest
+    name: Build all microservices
+    needs: [compile, unit-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Compile all services
+        run: |
+          cd api-gateway
+          ./mvnw clean compile
+          cd ../config-server
+          ./mvnw clean compile
+          cd ../discovery-server
+          ./mvnw clean compile
+          cd ../order-service
+          ./mvnw clean compile
+          cd ../product-service
+          ./mvnw clean compile
+          cd ../user-service
+          ./mvnw clean compile
+
+  build-image:
+    name: Build Docker images for all services
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Extract project version
+        id: extract_version
+        run: |
+          cd api-gateway
+          echo "VERSION=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Docker images for all services
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/api-gateway/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:${{ steps.extract_version.outputs.VERSION }}
+
+      - name: Build & Push Docker image for config-server
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/config-server/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:${{ steps.extract_version.outputs.VERSION }}
+
+      - name: Build & Push Docker image for discovery-server
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/discovery-server/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/discovery-server:${{ steps.extract_version.outputs.VERSION }}
+
+      - name: Build & Push Docker image for order-service
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/order-service/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/order-service:${{ steps.extract_version.outputs.VERSION }}
+
+      - name: Build & Push Docker image for product-service
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/product-service/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/product-service:${{ steps.extract_version.outputs.VERSION }}
+
+      - name: Build & Push Docker image for user-service
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/user-service/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-service:${{ steps.extract_version.outputs.VERSION }}
+
+
+
+#  deploy:
+#    name: Deploy Backend
+#    runs-on: self-hosted
+#    needs: [build-image]
+#    steps:
+#
+#      - name: Create deployment folder
+#        run: ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} "mkdir -p ci-cd"
+#
+#      - name: Copy docker-compose file
+#        run: scp -oStrictHostKeyChecking=no docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }}:ci-cd/docker-compose.yml
+#
+#      - name: Set ENV variable and deploy
+#        run: |
+#          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} <<EOF
+#          export EMAIL_HOST_NAME=${{ secrets.EMAIL_HOST_NAME }}
+#          export EMAIL_USER_NAME=${{ secrets.EMAIL_USER_NAME }}
+#          export EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+#          cd ci-cd
+#          docker compose -f docker-compose.yml pull -q
+#          docker compose -f docker-compose.yml up -d
+#          EOF
+#  health-check:
+#    name: API Health Check
+#    runs-on: self-hosted
+#    needs: [deploy]
+#    steps:
+#      - name: Check the docker container health status
+#        run: |
+#          if ! docker ps -a | grep bsn-api; then
+#            echo "Container is not running"
+#            exit 1
+#          fi
